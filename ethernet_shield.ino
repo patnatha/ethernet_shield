@@ -1,26 +1,25 @@
 #include <SPI.h>
 #include <Ethernet.h>
+#include <SD.h>
 
 //My MAC address
 byte mac[] = { 0xA8, 0x61, 0x0A, 0xAE, 0x72, 0xE4 };
 
-//the IP address for the shield:
-byte ip[] = { 10, 0, 0, 169 };    
-
-// the router's gateway address:
-byte gateway[] = { 10, 0, 0, 1 };
-
-// the subnet:
-byte subnet[] = { 255, 255, 255, 0 };
-
-EthernetServer server = EthernetServer(2100);
+//Etherent server
+EthernetServer server = EthernetServer(80);
 
 void setup() {
-  //Use CS pin 10 to initialize the board
-  Ethernet.init(10);  // Most Arduino shields
+  //Use CS pin 4 to initialize the SD card on the board
+  if (!SD.begin(4)) {
+    Serial.println("initialization failed!");
+    while (1);
+  }
+  
+  //Use CS pin 10 to initialize the ethernet board
+  Ethernet.init(10);
 
   //Start the ethernet connection
-  Ethernet.begin(mac, ip, gateway, subnet);
+  Serial.println(Ethernet.begin(mac)); //Use DHCP
 
   // Check for Ethernet hardware present
   if (Ethernet.hardwareStatus() == EthernetNoHardware) {
@@ -66,11 +65,10 @@ void loop() {
           client.println("HTTP/1.1 200 OK");
           client.println("Content-Type: text/html");
           client.println("Connection: close");  // the connection will be closed after completion of the response
-          client.println("Refresh: 5");  // refresh the page automatically every 5 sec
           client.println();
           client.println("<!DOCTYPE HTML>");
           client.println("<html>");
-          client.println("<p>Ciao<p>");
+          client.println("<p>Ciao, los turditos<p>");
           client.println("</html>");
           break;
         }
@@ -89,6 +87,7 @@ void loop() {
     
     // close the connection:
     client.stop();
+    
     Serial.println("client disconnected");
   }
 }
